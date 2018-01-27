@@ -11,6 +11,9 @@
                 <a class="disabled">Welcome @UserManager.GetUserName(User)!</a>
             </li>
             <li>
+                <a href="/Account/Photo?userId=@UserManager.GetUserId(User)">Profile Image</a>
+            </li>
+            <li>
                 <a asp-page="/Account/Manage/Index" title="Manage">My Profile</a>
             </li>
             <li>

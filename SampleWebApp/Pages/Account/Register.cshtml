@@ -8,7 +8,7 @@
 
 <div class="row">
     <div class="col-md-4">
-        <form asp-route-returnUrl="@Model.ReturnUrl" method="post">
+        <form asp-route-returnUrl="@Model.ReturnUrl" method="post" enctype="multipart/form-data">
             <h4>Create a new account.</h4>
             <hr />
             <div asp-validation-summary="All" class="text-danger"></div>
@@ -41,8 +41,13 @@
                 </div>
             </div>
             <div class="form-group">
+                <label asp-for="Input.ProfileImage"></label>
+                <input asp-for="Input.ProfileImage" type="file" accept="image/gif, image/jpeg, image/png, image/jpg" class="form-control" />
+                <span asp-validation-for="Input.ProfileImage" class="text-danger"></span>
+            </div>
+            <div class="form-group">
                 <label asp-for="Input.DateOfBirth"></label>
-                <input type="text" value="" asp-for="Input.DateOfBirth" class="form-control datepicker" />
+                <input asp-for="Input.DateOfBirth" class="form-control datepicker" />
                 <span asp-validation-for="Input.DateOfBirth" class="text-danger"></span>
             </div>
             <div class="form-group">
@@ -81,7 +86,7 @@
             var startDate = new Date('1925-01-01');
             var endDate = new Date();
             $(".datepicker").datepicker({
-                format: 'dd/mm/yyyy',
+                format: 'yyyy-mm-dd',
                 orientation: "bottom auto",
                 todayBtn: 1,
                 autoclose: 1,

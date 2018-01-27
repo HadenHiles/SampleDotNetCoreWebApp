@@ -43,7 +43,7 @@ namespace SampleWebApp.Pages.Account
             [Display(Name = "Account Type")]
             public string AccountType { get; set; }
 
-            // This works nicely but isn't supported automatically on the client side
+            // This is nice but isn't supported client side automatically
             [RequiredIf("AccountType == \"business\"", ErrorMessage = "Company Name is required.")]
             [StringLength(60, ErrorMessage = "The {0} must be at least {2} and at max {1} characters long.", MinimumLength = 1)]
             [Display(Name = "Company Name")]
@@ -64,12 +64,12 @@ namespace SampleWebApp.Pages.Account
             [Display(Name = "Email")]
             public string Email { get; set; }
 
-            [DataType(DataType.Upload)]
+            [FileExtensions(Extensions = "jpg,jpeg,png,gif", ErrorMessage = "Invalid image format. Must be jpg, jpeg, png, or gif.")]
             [Display(Name = "Profile Image")]
-            public byte[] ProfileImage { get; set; }
+            public FileContentResult ProfileImage { get; set; }
 
             [Required]
-            [MinimumAge(18)]
+            [MinimumAge(18, ErrorMessage = "Must be at least 18 years of age.")]
             [Display(Name = "Date of Birth")]
             [DataType(DataType.Date), DisplayFormat(DataFormatString = "{0:dd/MM/yyyy}", ApplyFormatInEditMode = true)]
             public DateTime? DateOfBirth { get; set; }
@@ -84,30 +84,6 @@ namespace SampleWebApp.Pages.Account
             [Display(Name = "Confirm password")]
             [Compare("Password", ErrorMessage = "The password and confirmation password do not match.")]
             public string ConfirmPassword { get; set; }
-        }
-
-        /// <summary>
-        /// Attribute validator to ensure date of birth is over the provided minimum age
-        /// </summary>
-        public class MinimumAgeAttribute : ValidationAttribute
-        {
-            int _minimumAge;
-
-            public MinimumAgeAttribute(int minimumAge)
-            {
-                _minimumAge = minimumAge;
-            }
-
-            public override bool IsValid(object value)
-            {
-                DateTime date;
-                if (DateTime.TryParse(value.ToString(), out date))
-                {
-                    return date.AddYears(_minimumAge) < DateTime.Now;
-                }
-
-                return false;
-            }
         }
 
         public IActionResult OnGet(string returnUrl = null)
@@ -127,7 +103,21 @@ namespace SampleWebApp.Pages.Account
             ReturnUrl = returnUrl;
             if (ModelState.IsValid)
             {
-                var user = new ApplicationUser { UserName = Input.Email, Email = Input.Email };
+                byte[] profileImageData = null;
+                if (Input.ProfileImage is FileContentResult)
+                {
+                    profileImageData = Input.ProfileImage.FileContents;
+                }
+                var user = new ApplicationUser {
+                    AccountType = Input.AccountType,
+                    CompanyName = Input.CompanyName,
+                    FirstName = Input.FirstName,
+                    LastName = Input.LastName,
+                    ProfileImage = profileImageData,
+                    DateOfBirth = Input.DateOfBirth,
+                    UserName = Input.Email,
+                    Email = Input.Email
+                };
                 var result = await _userManager.CreateAsync(user, Input.Password);
                 if (result.Succeeded)
                 {
