@@ -13,6 +13,39 @@
             <hr />
             <div asp-validation-summary="All" class="text-danger"></div>
             <div class="form-group">
+                <label asp-for="Input.AccountType"></label>
+                <select asp-for="Input.AccountType" class="form-control" id="accountType">
+                    <option value="" selected="selected">--Select--</option>
+                    <option value="business">Business</option>
+                    <option value="personal">Personal</option>
+                </select>
+                <span asp-validation-for="Input.AccountType" class="text-danger"></span>
+            </div>
+            <div class="hide" id="businessFields">
+                <div class="form-group">
+                    <label asp-for="Input.CompanyName"></label>
+                    <input asp-for="Input.CompanyName" class="form-control" />
+                    <span asp-validation-for="Input.CompanyName" class="text-danger"></span>
+                </div>
+            </div>
+            <div class="hide" id="personalFields">
+                <div class="form-group">
+                    <label asp-for="Input.FirstName"></label>
+                    <input asp-for="Input.FirstName" class="form-control" />
+                    <span asp-validation-for="Input.FirstName" class="text-danger"></span>
+                </div>
+                <div class="form-group">
+                    <label asp-for="Input.LastName"></label>
+                    <input asp-for="Input.LastName" class="form-control" />
+                    <span asp-validation-for="Input.LastName" class="text-danger"></span>
+                </div>
+            </div>
+            <div class="form-group">
+                <label asp-for="Input.DateOfBirth"></label>
+                <input type="text" value="" asp-for="Input.DateOfBirth" class="form-control datepicker" />
+                <span asp-validation-for="Input.DateOfBirth" class="text-danger"></span>
+            </div>
+            <div class="form-group">
                 <label asp-for="Input.Email"></label>
                 <input asp-for="Input.Email" class="form-control" />
                 <span asp-validation-for="Input.Email" class="text-danger"></span>
@@ -33,5 +66,47 @@
 </div>
 
 @section Scripts {
-    @await Html.PartialAsync("_ValidationScriptsPartial")
+    @await Html.PartialAsync("_ValidationScriptsPartial");
+
+    <script type="text/javascript">
+        $(document).ready(function () {
+            var accountTypeVal = $('#accountType').val();
+            updateAccountTypeView(accountTypeVal);
+
+            $('#accountType').change(function () {
+                var val = $(this).val();
+                updateAccountTypeView(val)
+            });
+
+            var startDate = new Date('1925-01-01');
+            var endDate = new Date();
+            $(".datepicker").datepicker({
+                format: 'dd/mm/yyyy',
+                orientation: "bottom auto",
+                todayBtn: 1,
+                autoclose: 1,
+                todayHighlight: 1,
+                startView: 2,
+                keyboardNavigation: 1,
+                minView: 1,
+                forceParse: 0,
+                startDate: startDate,
+                endDate: endDate,
+                setDate: startDate
+            });
+        });
+
+        function updateAccountTypeView(accountType) {
+            var businessFields = $('#businessFields');
+            var personalFields = $('#personalFields');
+
+            if (accountType.toLowerCase() == "business") {
+                businessFields.removeClass('hide');
+                personalFields.addClass('hide');
+            } else if (accountType.toLowerCase() == "personal") {
+                personalFields.removeClass('hide');
+                businessFields.addClass('hide');
+            }
+        }
+    </script>
 }

@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.Extensions.Logging;
 using SampleWebApp.Data;
+using SampleWebApp.Extensions;
 using SampleWebApp.Services;
 
 namespace SampleWebApp.Pages.Account
@@ -42,16 +43,18 @@ namespace SampleWebApp.Pages.Account
             [Display(Name = "Account Type")]
             public string AccountType { get; set; }
 
+            // This works nicely but isn't supported automatically on the client side
+            [RequiredIf("AccountType == \"business\"", ErrorMessage = "Company Name is required.")]
             [StringLength(60, ErrorMessage = "The {0} must be at least {2} and at max {1} characters long.", MinimumLength = 1)]
             [Display(Name = "Company Name")]
             public string CompanyName { get; set; }
-
-            [Required]
+            
+            [RequiredIf("AccountType == \"personal\"", ErrorMessage = "First Name is required.")]
             [StringLength(50, ErrorMessage = "The {0} must be at least {2} and at max {1} characters long.", MinimumLength = 1)]
             [Display(Name = "First Name")]
             public string FirstName { get; set; }
-
-            [Required]
+            
+            [RequiredIf("AccountType == \"personal\"", ErrorMessage = "Last Name is required.")]
             [StringLength(50, ErrorMessage = "The {0} must be at least {2} and at max {1} characters long.", MinimumLength = 1)]
             [Display(Name = "Last Name")]
             public string LastName { get; set; }
@@ -60,6 +63,10 @@ namespace SampleWebApp.Pages.Account
             [EmailAddress]
             [Display(Name = "Email")]
             public string Email { get; set; }
+
+            [DataType(DataType.Upload)]
+            [Display(Name = "Profile Image")]
+            public byte[] ProfileImage { get; set; }
 
             [Required]
             [MinimumAge(18)]
@@ -103,9 +110,16 @@ namespace SampleWebApp.Pages.Account
             }
         }
 
-        public void OnGet(string returnUrl = null)
+        public IActionResult OnGet(string returnUrl = null)
         {
             ReturnUrl = returnUrl;
+
+            if (_signInManager.IsSignedIn(User))
+            {
+                return RedirectToPage("/Index");
+            }
+
+            return Page();
         }
 
         public async Task<IActionResult> OnPostAsync(string returnUrl = null)
