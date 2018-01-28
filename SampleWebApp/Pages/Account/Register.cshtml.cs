@@ -5,11 +5,13 @@ using System.Text.Encodings.Web;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.Extensions.Logging;
 using SampleWebApp.Data;
-using SampleWebApp.Extensions;
+using SampleWebApp.Attributes;
 using SampleWebApp.Services;
+using System.IO;
 
 namespace SampleWebApp.Pages.Account
 {
@@ -64,9 +66,10 @@ namespace SampleWebApp.Pages.Account
             [Display(Name = "Email")]
             public string Email { get; set; }
 
-            [FileExtensions(Extensions = "jpg,jpeg,png,gif", ErrorMessage = "Invalid image format. Must be jpg, jpeg, png, or gif.")]
+            //[FileExtensions(Extensions = "jpg,jpeg,png,gif", ErrorMessage = "Invalid image format. Must be jpg, jpeg, png, or gif.")]
+            [DataType(DataType.Upload)]
             [Display(Name = "Profile Image")]
-            public FileContentResult ProfileImage { get; set; }
+            public IFormFile ProfileImage { get; set; }
 
             [Required]
             [MinimumAge(18, ErrorMessage = "Must be at least 18 years of age.")]
@@ -103,36 +106,42 @@ namespace SampleWebApp.Pages.Account
             ReturnUrl = returnUrl;
             if (ModelState.IsValid)
             {
-                byte[] profileImageData = null;
-                if (Input.ProfileImage is FileContentResult)
+                using (var memoryStream = new MemoryStream())
                 {
-                    profileImageData = Input.ProfileImage.FileContents;
-                }
-                var user = new ApplicationUser {
-                    AccountType = Input.AccountType,
-                    CompanyName = Input.CompanyName,
-                    FirstName = Input.FirstName,
-                    LastName = Input.LastName,
-                    ProfileImage = profileImageData,
-                    DateOfBirth = Input.DateOfBirth,
-                    UserName = Input.Email,
-                    Email = Input.Email
-                };
-                var result = await _userManager.CreateAsync(user, Input.Password);
-                if (result.Succeeded)
-                {
-                    _logger.LogInformation("User created a new account with password.");
+                    var user = new ApplicationUser
+                    {
+                        AccountType = Input.AccountType,
+                        CompanyName = Input.CompanyName,
+                        FirstName = Input.FirstName,
+                        LastName = Input.LastName,
+                        DateOfBirth = Input.DateOfBirth,
+                        UserName = Input.Email,
+                        Email = Input.Email
+                    };
 
-                    var code = await _userManager.GenerateEmailConfirmationTokenAsync(user);
-                    var callbackUrl = Url.EmailConfirmationLink(user.Id, code, Request.Scheme);
-                    await _emailSender.SendEmailConfirmationAsync(Input.Email, callbackUrl);
+                    if (Input.ProfileImage != null)
+                    {
+                        await Input.ProfileImage.CopyToAsync(memoryStream);
+                        byte[] profileImage = memoryStream.ToArray();
+                        user.ProfileImage = profileImage;
+                    }
+                    
+                    var result = await _userManager.CreateAsync(user, Input.Password);
+                    if (result.Succeeded)
+                    {
+                        _logger.LogInformation("User created a new account with password.");
 
-                    await _signInManager.SignInAsync(user, isPersistent: false);
-                    return LocalRedirect(Url.GetLocalUrl(returnUrl));
-                }
-                foreach (var error in result.Errors)
-                {
-                    ModelState.AddModelError(string.Empty, error.Description);
+                        var code = await _userManager.GenerateEmailConfirmationTokenAsync(user);
+                        var callbackUrl = Url.EmailConfirmationLink(user.Id, code, Request.Scheme);
+                        await _emailSender.SendEmailConfirmationAsync(Input.Email, callbackUrl);
+
+                        await _signInManager.SignInAsync(user, isPersistent: false);
+                        return LocalRedirect(Url.GetLocalUrl(returnUrl));
+                    }
+                    foreach (var error in result.Errors)
+                    {
+                        ModelState.AddModelError(string.Empty, error.Description);
+                    }
                 }
             }
 
