@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Identity;
@@ -22,10 +23,16 @@ namespace SampleWebApp.Controllers
 
         // GET api/<controller>/:userId
         [HttpGet("{userId}")]
-        public FileContentResult Get(string userId)
+        public ActionResult Get(string userId)
         {
             var user = _db.Users.Find(userId);
-            return new FileContentResult(user.ProfileImage, "image/jpeg");
+            if (user.ProfileImage != null)
+            {
+                Stream stream = new MemoryStream(user.ProfileImage);
+                return new FileStreamResult(stream, "image/jpg");
+            }
+
+            return new EmptyResult();
         }
     }
 }

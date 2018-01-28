@@ -8,13 +8,15 @@
     <form asp-controller="Account" asp-action="Logout" method="post" id="logoutForm" class="navbar-right">
         <ul class="nav navbar-nav navbar-right">
             <li>
-                <a class="disabled">Welcome @UserManager.GetUserName(User)!</a>
-            </li>
-            <li>
-                <a href="/Account/Photo?userId=@UserManager.GetUserId(User)">Profile Image</a>
-            </li>
-            <li>
-                <a asp-page="/Account/Manage/Index" title="Manage">My Profile</a>
+                <a asp-page="/Account/Manage/Index" title="Manage">
+                    <img src="/api/ProfileImage/@UserManager.GetUserId(User)" 
+                         class="navbar-profile-image profile-image img-circle img-responsive" 
+                         style="max-height: 30px;
+                                float: left;
+                                padding: 0 5px;
+                                margin-top: -5px;" />
+                    My Profile
+                </a>
             </li>
             <li>
                 <button type="submit" class="btn btn-link navbar-btn navbar-link">Log out</button>
