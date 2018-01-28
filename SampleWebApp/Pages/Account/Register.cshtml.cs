@@ -66,7 +66,7 @@ namespace SampleWebApp.Pages.Account
             [Display(Name = "Email")]
             public string Email { get; set; }
 
-            //[FileExtensions(Extensions = "jpg,jpeg,png,gif", ErrorMessage = "Invalid image format. Must be jpg, jpeg, png, or gif.")]
+            [FileExtensions(Extensions = "jpg,jpeg,png,gif", ErrorMessage = "Invalid image format. Must be jpg, jpeg, png, or gif.")]
             [DataType(DataType.Upload)]
             [Display(Name = "Profile Image")]
             public IFormFile ProfileImage { get; set; }
